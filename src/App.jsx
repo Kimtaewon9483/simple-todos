@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import './App.css'
 import TodoContent from './components/TodoContent';
+import TodoInput from './components/TodoInput';
+import TodoTitle from './components/TodoTitle';
 
 function App() {
   const today = new Date()
+  const index = useRef(4)
 
   const [todayDate, setTodayDate] = useState({
     year: today.getFullYear(),
     month: today.getMonth() + 1,
     day: today.getDate()
   })
+
+  const [todoText, setTodoText] = useState("")
 
   const [todos, setTodos] = useState([
     {
@@ -32,37 +37,6 @@ function App() {
     },
   ])
 
-  const convertMonth = () => {
-    switch(todayDate.month) {
-      case 1: 
-      return "JAN"
-      case 2: 
-      return "FEB"
-      case 3: 
-      return "MAR"
-      case 4: 
-      return "APR"
-      case 5: 
-      return "MAY"
-      case 6: 
-      return "JUN"
-      case 7: 
-      return "JUL"
-      case 8: 
-      return "AUG"
-      case 9: 
-      return "SEP"
-      case 10: 
-      return "OCT"
-      case 11: 
-      return "NOV"
-      case 12: 
-      return "DEC"
-      default: 
-      return ""
-    }
-  }
-
   const onChecked = useCallback(id => {
     setTodos(
       todos.map(todo => 
@@ -72,43 +46,62 @@ function App() {
   }, [todos])
 
   const onImportant = useCallback(id => {
-    setTodos(
-      todos.map(todo => 
-        todo.id === id ? {...todo, isImportant: !todo.isImportant} : todo
-      )
+    const tempTodoLIst = [...todos]
+    tempTodoLIst.map(todo =>
+      todo.id === id ? todo.isImportant = !todo.isImportant : todo
     )
+    const index = tempTodoLIst.findIndex(todo => todo.id === id)
+    let countOfImportant = 0
+    tempTodoLIst.forEach(todo => {
+      if (todo.isImportant) {
+        countOfImportant += 1
+      }
+    })
+    if (tempTodoLIst[index].isImportant) {
+      const item = tempTodoLIst.splice(index, 1)
+      tempTodoLIst.splice(0, 0, item[0])
+    } else {
+      const item = tempTodoLIst.splice(index, 1)
+      tempTodoLIst.splice(countOfImportant, 0, item[0])
+    }
+    setTodos([...tempTodoLIst])
+  }, [todos])
+
+  const onChangeTodoText = (e) => {
+    setTodoText(e.target.value)
+  }
+
+  const onAddTodo = useCallback(() => {
+    const newTodo = {
+      id: index.current,
+      text: todoText,
+      isImportant: false,
+      isChecked: false,
+    }
+    index.current += 1
+    setTodos([newTodo, ...todos])
+    setTodoText("")
+  }, [todos, todoText])
+
+  const deleteTodo = useCallback(id => {
+    const filteredTodoList = todos.filter(item => item.id !== id);
+    setTodos(filteredTodoList)
   }, [todos])
 
   return (
     <div className="main-bg">
-      <div>
-        <div className="todo-container">
-
-          <div className="todo-title-container">
-            <div className="date-area">
-              <div className="date-day">{todayDate.day}</div>
-              <div className="date-mon-year">
-                <div className="date-mon">{convertMonth()}</div>
-                <div className="date-year">{todayDate.year}</div>
-              </div>
-            </div>
-            <div className="title-area">TODO LIST</div>
-          </div>
-
-          <div className="todo-input-area">
-            <input type="text" placeholder='추가할 할 일을 입력하세요' id="" />
-            <span>⨁</span>
-          </div>
-
-          <div className="todo-list-container">
-            {
-              todos.map(todo => 
-                <TodoContent key={todo.id} content={todo} onChecked={onChecked} onImportant={onImportant}/>
-              )
-            }
-          </div>
-
+      <div className="todo-container">
+        <TodoTitle today={todayDate} />
+        
+        <TodoInput text={todoText} onChangeTodoText={onChangeTodoText} onAddTodo={onAddTodo} />
+        <div className="todo-list-container">
+          {
+            todos.map(todo => 
+              <TodoContent key={todo.id} content={todo} onChecked={onChecked} onImportant={onImportant} deleteTodo={deleteTodo}/>
+            )
+          }
         </div>
+
       </div>
     </div>
   );

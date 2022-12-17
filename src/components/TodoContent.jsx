@@ -1,7 +1,5 @@
-const TodoContent = ({ content, onChecked, onImportant }) => {
+const TodoContent = ({ content, onChecked, onImportant, deleteTodo }) => {
     const { id, text, isImportant, isChecked} = content
-
-    console.log(isChecked);
 
     return (
         <div className="todo-list-area">
@@ -11,7 +9,7 @@ const TodoContent = ({ content, onChecked, onImportant }) => {
             </div>
             <div className="right-content">
                 <span className={`todo-important is-important-${isImportant}`} onClick={() => onImportant(id)}>{isImportant ?  "★" : "☆"}</span>
-                <span className='todo-delete'>⊖</span>
+                <span className='todo-delete' onClick={() => deleteTodo(id)}>⊖</span>
             </div>
         </div>
     )
